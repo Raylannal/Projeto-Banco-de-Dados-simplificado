@@ -76,22 +76,62 @@ void criarTabela() {
     }
 
     Coluna coluna[quantColunas];
+    char nomeColunaImput[MAX_TAM_NOME];
 
     for (int i = 0; i < quantColunas; i++) 
     {
         if (i == 0) 
         {
             printf("Informe o nome da coluna que será a chave primária: ");
+            fgets(coluna[i].nomeColuna, sizeof(coluna[i].nomeColuna), stdin);
         }
         else
         {
+            printf("Informe o nome da coluna: \n");
+            fgets(coluna[i].nomeColuna, sizeof(coluna[i].nomeColuna), stdin);
+
+            printf("Qual o tipo de dado da coluna %s: (0-INT, 1-CHAR, 2-FLOAT, 3-DOUBLE, 4-STRING)\n", coluna[i].nomeColuna);
+            int tipo;
+            scanf("%d", &tipo);
+
+            coluna[i].tipoColuna = tipo;
+        }
+        
+    }
+
+    //primeira linha com valores
+
+    unsigned int indexChavePrimaria = 1;
+    for (int i = 0; i < quantColunas; i++)
+    {
+        if (i == 0)
+        {
+            printf("%d", indexChavePrimaria);
+            indexChavePrimaria++;
+        }
+        else
+        {
+            switch (coluna[i].tipoColuna)
+            {
+            case TIPO_INT:
+                break;
+            case TIPO_CHAR:
+                break;
+            case TIPO_FLOAT:
+                break;
+            case TIPO_DOUBLE:
+                break;
+            case TIPO_STRING:
+                break;
             
+            default:
+                break;
+            }
         }
         
         
-        
-        
     }
+    
     
     
 
