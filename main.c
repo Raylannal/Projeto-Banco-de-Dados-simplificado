@@ -28,7 +28,7 @@ typedef struct {
     Valor valorColuna;
 }Coluna;
 
-TiposDados verificaTipo(char string[]);
+TiposDados verificaTipo(char string[], Coluna *coluna, int i);
 void criarTabela();
 void removerQuebraLinha(char *string);
 void limparBuffer();
@@ -100,7 +100,7 @@ void criarTabela() {
         }
         else
         {
-            printf("Informe o nome da coluna %d: \n", i + 1);
+            printf("Informe o nome da coluna %d, seguido do tipo de dado, separado por '|||': (0 - INT) (1 - CHAR) (2 - FLOAT) (3 - DOUBLE) (4 - STRING)", i + 1);
             fgets(nomeColunaImput, MAX_TAM_NOME, stdin);
             strcpy(nomeColunaImput, nomeColunaImput);
             removerQuebraLinha(nomeColunaImput);
@@ -111,7 +111,7 @@ void criarTabela() {
 
     //primeira linha com valores
 
-    unsigned int indexChavePrimaria = 1;
+    unsigned int indexChavePrimaria = 0;
     for (int i = 0; i < quantColunas; i++)
     {
         if (i == 0)
@@ -151,46 +151,64 @@ void criarTabela() {
             }
         }
     }
-}
+    
+    for (int i = 0; i < quantColunas; i++) 
+    {
+        printf("%s\t", coluna[i].nomeColuna);
+    }
+    printf("\n");
 
-TiposDados verificaTipo(char string[]) {
-    // Verifica se é um número inteiro
-    int valorInt = atoi(string);
-    if (valorInt != 0 || string[0] == '0') 
+    // Imprimir dados
+    for (int i = 0; i < quantColunas; i++) 
     {
-        return TIPO_INT;
-    } 
-    else 
-    {
-        // Verifica se é um número de ponto flutuante
-        float valorFloat = atof(string);
-        if (valorFloat != 0.0 || (valorFloat == 0.0 && string[0] == '0')) 
+        printf("o tipo eh: %d", coluna[i].tipoColuna);
+        if (i == 0) 
         {
-            return TIPO_FLOAT;
+            printf("%u\t", indexChavePrimaria);
         } 
         else 
         {
-            // Tentativa de converter para double
-            double valorDouble = atof(string);
-            if (valorDouble != 0.0 || (valorDouble == 0.0 && string[0] == '0')) 
+            
+            switch (coluna[i].tipoColuna) 
             {
-                return TIPO_DOUBLE;
-            } 
-            else 
-            {
-                // Verifica se é um caractere
-                if (isalpha(string[0])) 
-                {
-                    return TIPO_CHAR;
-                } 
-                else 
-                {
-                    return TIPO_STRING;
-                }
+                case TIPO_INT:
+                    printf("%d\t", coluna[i].valorColuna.valorInt);
+                    break;
+                case TIPO_CHAR:
+                    printf("%c\t", coluna[i].valorColuna.valorChar);
+                    break;
+                case TIPO_FLOAT:
+                    printf("%f\t", coluna[i].valorColuna.valorFloat);
+                    break;
+                case TIPO_DOUBLE:
+                    printf("%lf\t", coluna[i].valorColuna.valorDouble);
+                    break;
+                case TIPO_STRING:
+                    printf("%s\t", coluna[i].valorColuna.valorString);
+                    break;
+                default:
+                    break;
             }
         }
     }
+    printf("\n");
+    
+
 }
+
+TiposDados verificaTipo(char string[], Coluna *coluna, int i) {
+    char *pedaco;
+    pedaco = strtok(string, "|||");
+    strcpy(coluna[i].nomeColuna, pedaco);
+
+    pedaco = strtok(NULL, "|||");
+
+
+
+
+    
+}
+
 
 void removerQuebraLinha(char *string) {
     int tamanho = strlen(string);
