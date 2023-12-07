@@ -100,10 +100,11 @@ void criarTabela() {
         }
         else
         {
-            printf("Informe o nome da coluna %d, seguido do tipo de dado, separado por '|||': (0 - INT) (1 - CHAR) (2 - FLOAT) (3 - DOUBLE) (4 - STRING)", i + 1);
+            printf("Informe o nome da coluna %d, seguido do numero do tipo de dado, separado por '|||': (0 = INT) (1 = CHAR) (2 = FLOAT) (3 = DOUBLE) (4 = STRING) ", i + 1);
             fgets(nomeColunaImput, MAX_TAM_NOME, stdin);
             strcpy(nomeColunaImput, nomeColunaImput);
             removerQuebraLinha(nomeColunaImput);
+            coluna[i].tipoColuna = verificaTipo(nomeColunaImput, coluna, i);
             strcpy(coluna[i].nomeColuna, nomeColunaImput);
         }
         
@@ -126,8 +127,7 @@ void criarTabela() {
             char valorInput[MAX_TAM_VALOR];
 
             fgets(valorInput, MAX_TAM_VALOR, stdin);
-
-            coluna[i].tipoColuna = verificaTipo(valorInput);
+            removerQuebraLinha(valorInput);
 
             switch (coluna[i].tipoColuna)
             {
@@ -161,7 +161,6 @@ void criarTabela() {
     // Imprimir dados
     for (int i = 0; i < quantColunas; i++) 
     {
-        printf("o tipo eh: %d", coluna[i].tipoColuna);
         if (i == 0) 
         {
             printf("%u\t", indexChavePrimaria);
@@ -202,11 +201,29 @@ TiposDados verificaTipo(char string[], Coluna *coluna, int i) {
     strcpy(coluna[i].nomeColuna, pedaco);
 
     pedaco = strtok(NULL, "|||");
-
-
-
-
-    
+    int tipo = atoi(pedaco);
+    printf("TIPO AQQQQQQ %d\n", tipo);
+    switch (tipo)
+    {
+    case 0:
+        return TIPO_INT;
+        break;
+    case 1:
+        return TIPO_CHAR;
+        break;
+    case 2:
+        return TIPO_FLOAT;
+        break;
+    case 3:
+        return TIPO_DOUBLE;
+        break;
+    case 4:
+        return TIPO_STRING;
+        break;
+    default:
+        return -1;
+        break;
+    }
 }
 
 
