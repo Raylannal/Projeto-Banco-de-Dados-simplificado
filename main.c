@@ -29,20 +29,21 @@ typedef struct {
 }Coluna;
 
 TiposDados verificaTipo(char string[], Coluna *coluna, int i);
-void criarTabela();
+void criarTabela(FILE *arquivo);
 void removerQuebraLinha(char *string);
 void limparBuffer();
 
 
 int main() 
 {
+    FILE *arquivoTabela;
     int escolhaMenu = 0;
     scanf("%d", &escolhaMenu);
     
     switch (escolhaMenu)
     {
     case 1: 
-        criarTabela();
+        criarTabela(arquivoTabela);
         break;
     case 2: //listar tabelas
         break;
@@ -66,22 +67,39 @@ int main()
     return 0;
 }
 
-void criarTabela() {
+void criarTabela(FILE *arquivo) {
     char nomeTabela[MAX_TAM_NOME];
 
     printf("Informe o nome da tabela: ");
     limparBuffer();
     fgets(nomeTabela, MAX_TAM_NOME, stdin);
+    removerQuebraLinha(nomeTabela);
 
+// Verificando se já existe um arquivo com o mesmo nome
+    // Tenta abrir o arquivo em modo leitura
+    arquivo = fopen(nomeTabela, "r");
+    if (arquivo != NULL)
+    {
+        // Arquivo com o mesmo nome já existe
+        printf("Um arquivo com o nome %s já existe.\n", nomeTabela);
+        fclose(arquivo);
+        return;
+    }
+    // Cria o arquivo em modo escrita
+    arquivo = fopen(nomeTabela, "w");
+    if (arquivo == NULL)
+    {
+        printf("Erro ao criar o arquivo.\n");
+        return;
+    }
+    
     int quantColunas = 0;
-
     printf("Informe quantas colunas a tabela terá inicialmente (mínimo 2): ");
     
-
     if (scanf("%d", &quantColunas) != 1 || quantColunas < 2) 
     {
         printf("Número de colunas inválido.\n");
-        exit(1);
+        return;
     }
     limparBuffer();
 
@@ -94,15 +112,13 @@ void criarTabela() {
         {
             printf("Informe o nome da coluna %d que será a chave primária: ", i + 1);
             fgets(nomeColunaImput, MAX_TAM_NOME, stdin);
-            strcpy(nomeColunaImput, nomeColunaImput);
             removerQuebraLinha(nomeColunaImput);
             strcpy(coluna[i].nomeColuna, nomeColunaImput);
         }
         else
         {
-            printf("Informe o nome da coluna %d, seguido do numero do tipo de dado, separado por '|||': (0 = INT) (1 = CHAR) (2 = FLOAT) (3 = DOUBLE) (4 = STRING) ", i + 1);
+            printf("Informe o nome da coluna %d, seguido do numero correspondente ao tipo de dado, separado por '|': (0 = INT) (1 = CHAR) (2 = FLOAT) (3 = DOUBLE) (4 = STRING) ", i + 1);
             fgets(nomeColunaImput, MAX_TAM_NOME, stdin);
-            strcpy(nomeColunaImput, nomeColunaImput);
             removerQuebraLinha(nomeColunaImput);
             coluna[i].tipoColuna = verificaTipo(nomeColunaImput, coluna, i);
             strcpy(coluna[i].nomeColuna, nomeColunaImput);
@@ -117,7 +133,6 @@ void criarTabela() {
     {
         if (i == 0)
         {
-            printf("%d ", indexChavePrimaria);
             indexChavePrimaria++;
         }
         else
@@ -151,7 +166,7 @@ void criarTabela() {
             }
         }
     }
-    
+    // imprimir nomes
     for (int i = 0; i < quantColunas; i++) 
     {
         printf("%s\t", coluna[i].nomeColuna);
@@ -197,12 +212,11 @@ void criarTabela() {
 
 TiposDados verificaTipo(char string[], Coluna *coluna, int i) {
     char *pedaco;
-    pedaco = strtok(string, "|||");
+    pedaco = strtok(string, "|");
     strcpy(coluna[i].nomeColuna, pedaco);
 
-    pedaco = strtok(NULL, "|||");
+    pedaco = strtok(NULL, "|");
     int tipo = atoi(pedaco);
-    printf("TIPO AQQQQQQ %d\n", tipo);
     switch (tipo)
     {
     case 0:
@@ -221,7 +235,8 @@ TiposDados verificaTipo(char string[], Coluna *coluna, int i) {
         return TIPO_STRING;
         break;
     default:
-        return -1;
+        printf("Tipo de dado inválido.\n");
+        exit(1);
         break;
     }
 }
