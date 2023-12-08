@@ -36,7 +36,7 @@ void limparBuffer();
 
 int main() 
 {
-    FILE *arquivoTabela;
+    FILE *arquivoTabela = NULL;
     int escolhaMenu = 0;
     scanf("%d", &escolhaMenu);
     
@@ -47,9 +47,9 @@ int main()
         break;
     case 2: //listar tabelas
         break;
-    case 3: //criar nova linha na tabelna
+    case 3: //criar nova linha na tabela
         break;
-    case 4: //criar nova coluna na tabelna
+    case 4: //criar nova coluna na tabela
         break;
     case 5: //listar dados tabela
         break;
@@ -95,7 +95,7 @@ void criarTabela(FILE *arquivo) {
     
     int quantColunas = 0;
     printf("Informe quantas colunas a tabela terá inicialmente (mínimo 2): ");
-    
+    // Teste para entradas válidas
     if (scanf("%d", &quantColunas) != 1 || quantColunas < 2) 
     {
         printf("Número de colunas inválido.\n");
@@ -105,108 +105,76 @@ void criarTabela(FILE *arquivo) {
 
     Coluna coluna[quantColunas];
     char nomeColunaImput[MAX_TAM_NOME];
-
+    // Criação da primeira linha da tabela que contém os nomes
     for (int i = 0; i < quantColunas; i++) 
     {
         if (i == 0) 
         {
             printf("Informe o nome da coluna %d que será a chave primária: ", i + 1);
-            fgets(nomeColunaImput, MAX_TAM_NOME, stdin);
+            fgets(nomeColunaImput, MAX_TAM_NOME, stdin);// Leitura do nome da coluna
             removerQuebraLinha(nomeColunaImput);
             strcpy(coluna[i].nomeColuna, nomeColunaImput);
+            fprintf(arquivo,"%s",coluna[i].nomeColuna);// Escreve no arquivo o nome da coluna
         }
         else
         {
             printf("Informe o nome da coluna %d, seguido do numero correspondente ao tipo de dado, separado por '|': (0 = INT) (1 = CHAR) (2 = FLOAT) (3 = DOUBLE) (4 = STRING) ", i + 1);
             fgets(nomeColunaImput, MAX_TAM_NOME, stdin);
             removerQuebraLinha(nomeColunaImput);
-            coluna[i].tipoColuna = verificaTipo(nomeColunaImput, coluna, i);
+            coluna[i].tipoColuna = verificaTipo(nomeColunaImput, coluna, i);// Separa o nome da coluna do seu tipo de dado
             strcpy(coluna[i].nomeColuna, nomeColunaImput);
+            fprintf(arquivo,"|-|%s", coluna[i].nomeColuna);// Escreve no arquivo o nome da coluna
         }
         
     }
+    fprintf(arquivo,";;\n");// Termina a linha com ";;" e muda o ponteiro para iniciar a proxima linha
 
     //primeira linha com valores
-
     unsigned int indexChavePrimaria = 0;
     for (int i = 0; i < quantColunas; i++)
     {
         if (i == 0)
         {
             indexChavePrimaria++;
+            fprintf(arquivo,"%d",indexChavePrimaria);// Escreve o valor da coluna chave primaria
         }
         else
         {
             printf("Digite o valor da coluna %s: ", coluna[i].nomeColuna);
-            
             char valorInput[MAX_TAM_VALOR];
-
             fgets(valorInput, MAX_TAM_VALOR, stdin);
             removerQuebraLinha(valorInput);
 
-            switch (coluna[i].tipoColuna)
+            switch (coluna[i].tipoColuna) // Verifica o tipo de dado e escreve no arquivo depois da conversão necessária
             {
             case TIPO_INT:
                 coluna[i].valorColuna.valorInt = atoi(valorInput);
+                fprintf(arquivo,"|-|%d", coluna[i].valorColuna.valorInt);
                 break;
             case TIPO_CHAR:
                 coluna[i].valorColuna.valorChar = valorInput[0];
+                fprintf(arquivo,"|-|%c", coluna[i].valorColuna.valorChar);
                 break;
             case TIPO_FLOAT:
                 coluna[i].valorColuna.valorFloat = atof(valorInput);
+                fprintf(arquivo,"|-|%f", coluna[i].valorColuna.valorFloat);
                 break;
             case TIPO_DOUBLE:
                 coluna[i].valorColuna.valorDouble = atof(valorInput);
+                fprintf(arquivo,"|-|%lf", coluna[i].valorColuna.valorDouble);
                 break;
             case TIPO_STRING:
                 strcpy(coluna[i].valorColuna.valorString, valorInput);
+                fprintf(arquivo,"|-|%s", coluna[i].valorColuna.valorString);
                 break;
             default:
                 break;
             }
         }
     }
-    // imprimir nomes
-    for (int i = 0; i < quantColunas; i++) 
-    {
-        printf("%s\t", coluna[i].nomeColuna);
-    }
-    printf("\n");
+    fprintf(arquivo,";;\n");// Termina a linha com ";;" e muda o ponteiro para iniciar a proxima linha
 
-    // Imprimir dados
-    for (int i = 0; i < quantColunas; i++) 
-    {
-        if (i == 0) 
-        {
-            printf("%u\t", indexChavePrimaria);
-        } 
-        else 
-        {
-            
-            switch (coluna[i].tipoColuna) 
-            {
-                case TIPO_INT:
-                    printf("%d\t", coluna[i].valorColuna.valorInt);
-                    break;
-                case TIPO_CHAR:
-                    printf("%c\t", coluna[i].valorColuna.valorChar);
-                    break;
-                case TIPO_FLOAT:
-                    printf("%f\t", coluna[i].valorColuna.valorFloat);
-                    break;
-                case TIPO_DOUBLE:
-                    printf("%lf\t", coluna[i].valorColuna.valorDouble);
-                    break;
-                case TIPO_STRING:
-                    printf("%s\t", coluna[i].valorColuna.valorString);
-                    break;
-                default:
-                    break;
-            }
-        }
-    }
-    printf("\n");
-    
+    fclose(arquivo);// Fecha o arquivo
 
 }
 
