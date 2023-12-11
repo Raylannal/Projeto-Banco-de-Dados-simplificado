@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <dirent.h>
 
 #define MAX_TAM_NOME 30
 #define MAX_TAM_VALOR 50
@@ -32,6 +33,7 @@ TiposDados verificaTipo(char string[], Coluna *coluna, int i);
 void criarTabela(FILE *arquivo);
 void removerQuebraLinha(char *string);
 void limparBuffer();
+void listarTabelas();
 
 
 int main() 
@@ -46,6 +48,7 @@ int main()
         criarTabela(arquivoTabela);
         break;
     case 2: //listar tabelas
+        listarTabelas();
         break;
     case 3: //criar nova linha na tabela
         break;
@@ -74,6 +77,9 @@ void criarTabela(FILE *arquivo) {
     limparBuffer();
     fgets(nomeTabela, MAX_TAM_NOME, stdin);
     removerQuebraLinha(nomeTabela);
+    char extensao[5] = ".itp";
+
+    strcat(nomeTabela, extensao); // Concatena o nome da tabela com a extensão ".itp"
 
 // Verificando se já existe um arquivo com o mesmo nome
     // Tenta abrir o arquivo em modo leitura
@@ -220,6 +226,31 @@ void removerQuebraLinha(char *string) {
 void limparBuffer() {
     int c;
     while ((c = getchar()) != '\n' && c != EOF);
+}
+
+void listarTabelas() {
+    DIR *dir;
+    struct dirent *ent;
+
+    char *diretorio = "../output";
+    char *extensao = ".itp";
+
+    if ((dir = opendir(diretorio)) != NULL)
+    {
+        while ((ent = readdir(dir)) != NULL)
+        {
+            int tamanhoNome = strlen(ent->d_name);
+            int tamanhoExtensao = strlen(extensao);
+            if (tamanhoNome >= tamanhoExtensao && strcmp(ent->d_name + tamanhoNome - tamanhoExtensao, extensao) == 0)
+            {
+                printf("Tabela: %s\n", ent->d_name);
+            }
+        }
+        closedir(dir);
+    }
+    else {
+        perror("Erro ao abrir o diretório");
+    }
 }
 
   
