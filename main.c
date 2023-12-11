@@ -73,8 +73,8 @@ int main()
 void criarTabela(FILE *arquivo) {
     char nomeTabela[MAX_TAM_NOME];
 
-    printf("Informe o nome da tabela: ");
     limparBuffer();
+    printf("Informe o nome da tabela: ");
     fgets(nomeTabela, MAX_TAM_NOME, stdin);
     removerQuebraLinha(nomeTabela);
     char extensao[5] = ".itp";
@@ -89,14 +89,14 @@ void criarTabela(FILE *arquivo) {
         // Arquivo com o mesmo nome já existe
         printf("Um arquivo com o nome %s já existe.\n", nomeTabela);
         fclose(arquivo);
-        return;
+        return 1;
     }
     // Cria o arquivo em modo escrita
     arquivo = fopen(nomeTabela, "w");
     if (arquivo == NULL)
     {
         printf("Erro ao criar o arquivo.\n");
-        return;
+        return 1;
     }
     
     int quantColunas = 0;
@@ -124,17 +124,31 @@ void criarTabela(FILE *arquivo) {
         }
         else
         {
-            printf("Informe o nome da coluna %d, seguido do numero correspondente ao tipo de dado, separado por '|': (0 = INT) (1 = CHAR) (2 = FLOAT) (3 = DOUBLE) (4 = STRING) ", i + 1);
+            printf("Informe o nome da coluna %d, seguido do numero correspondente ao tipo de dado, separado por '||': (0 = INT) (1 = CHAR) (2 = FLOAT) (3 = DOUBLE) (4 = STRING) ", i + 1);
             fgets(nomeColunaImput, MAX_TAM_NOME, stdin);
             removerQuebraLinha(nomeColunaImput);
             coluna[i].tipoColuna = verificaTipo(nomeColunaImput, coluna, i);// Separa o nome da coluna do seu tipo de dado
             strcpy(coluna[i].nomeColuna, nomeColunaImput);
-            fprintf(arquivo,"|-|%s", coluna[i].nomeColuna);// Escreve no arquivo o nome da coluna
+            fprintf(arquivo,"||%s", coluna[i].nomeColuna);// Escreve no arquivo o nome da coluna
         }
         
     }
     fprintf(arquivo,";;\n");// Termina a linha com ";;" e muda o ponteiro para iniciar a proxima linha
+    fseek(arquivo, 0, SEEK_SET); // Retorna o ponteiro para inicio do arquivo para escrever os tipos de dados recebidos
 
+    for (int i = 1; i < quantColunas; i++) // Escreve os tipos de dados na primeira linha
+    {
+        if (i == 0)
+        {
+            fprintf(arquivo, "0");
+        }
+        else
+        {
+            fprintf(arquivo, "||%d", coluna[i].tipoColuna);
+        }   
+    }
+    fprintf(arquivo,"\n");
+    
     //primeira linha com valores
     unsigned int indexChavePrimaria = 0;
     for (int i = 0; i < quantColunas; i++)
@@ -155,30 +169,30 @@ void criarTabela(FILE *arquivo) {
             {
             case TIPO_INT:
                 coluna[i].valorColuna.valorInt = atoi(valorInput);
-                fprintf(arquivo,"|-|%d", coluna[i].valorColuna.valorInt);
+                fprintf(arquivo,"||%d", coluna[i].valorColuna.valorInt);
                 break;
             case TIPO_CHAR:
                 coluna[i].valorColuna.valorChar = valorInput[0];
-                fprintf(arquivo,"|-|%c", coluna[i].valorColuna.valorChar);
+                fprintf(arquivo,"||%c", coluna[i].valorColuna.valorChar);
                 break;
             case TIPO_FLOAT:
                 coluna[i].valorColuna.valorFloat = atof(valorInput);
-                fprintf(arquivo,"|-|%f", coluna[i].valorColuna.valorFloat);
+                fprintf(arquivo,"||%f", coluna[i].valorColuna.valorFloat);
                 break;
             case TIPO_DOUBLE:
                 coluna[i].valorColuna.valorDouble = atof(valorInput);
-                fprintf(arquivo,"|-|%lf", coluna[i].valorColuna.valorDouble);
+                fprintf(arquivo,"||%lf", coluna[i].valorColuna.valorDouble);
                 break;
             case TIPO_STRING:
                 strcpy(coluna[i].valorColuna.valorString, valorInput);
-                fprintf(arquivo,"|-|%s", coluna[i].valorColuna.valorString);
+                fprintf(arquivo,"||%s", coluna[i].valorColuna.valorString);
                 break;
             default:
                 break;
             }
         }
     }
-    fprintf(arquivo,";;\n");// Termina a linha com ";;" e muda o ponteiro para iniciar a proxima linha
+    fprintf(arquivo,"\n");// Termina a linha com ";;" e muda o ponteiro para iniciar a proxima linha
 
     fclose(arquivo);// Fecha o arquivo
 
@@ -186,10 +200,10 @@ void criarTabela(FILE *arquivo) {
 
 TiposDados verificaTipo(char string[], Coluna *coluna, int i) {
     char *pedaco;
-    pedaco = strtok(string, "|");
+    pedaco = strtok(string, "||");
     strcpy(coluna[i].nomeColuna, pedaco);
 
-    pedaco = strtok(NULL, "|");
+    pedaco = strtok(NULL, "||");
     int tipo = atoi(pedaco);
     switch (tipo)
     {
@@ -239,6 +253,7 @@ void listarTabelas() {
     {
         while ((ent = readdir(dir)) != NULL)
         {
+            // Verifica se o nome do arquivo termina com a extensão "".itp"
             int tamanhoNome = strlen(ent->d_name);
             int tamanhoExtensao = strlen(extensao);
             if (tamanhoNome >= tamanhoExtensao && strcmp(ent->d_name + tamanhoNome - tamanhoExtensao, extensao) == 0)
@@ -251,6 +266,21 @@ void listarTabelas() {
     else {
         perror("Erro ao abrir o diretório");
     }
+}
+
+void criarLinha(FILE *arquivo, char nomeTabela[MAX_TAM_NOME]) {
+    char linhaDeTipos[MAX_TAM_NOME]; // Considerando que terão no máximo 15 colunas
+    char linhaNomesColunas[255]; 
+    arquivo = fopen(nomeTabela, "r+");
+    if (arquivo == NULL)
+    {
+        printf("Erro ao abrir o arquivo");
+        return 1;
+    }
+    fscanf(arquivo, "%s", linhaDeTipos); // Lê a primeira linha do arquivo que informa os tipos do dados
+    fscanf(arquivo, "%s", linhaNomesColunas); // Lê a segunda linha do arquivo que informa nos nomes das colunas
+    
+    
 }
 
   
