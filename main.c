@@ -44,45 +44,52 @@ int main()
 {
     FILE *arquivoTabela = NULL;
     char nomeTabela[MAX_TAM_NOME];
-    int escolhaMenu = 0;
-    scanf("%d", &escolhaMenu);
-    limparBuffer();
-
-    switch (escolhaMenu)
+    int escolhaMenu = 8;
+    
+    while (escolhaMenu != 0)
     {
-    case 1: 
-        criarTabela(arquivoTabela);
-        break;
-    case 2: //listar tabelas
-        listarTabelas();
-        break;
-    case 3: //criar nova linha na tabela
-        printf("Informe em qual tabela (nome e extensão) deseja adicionar uma nova linha:  \n");
-        fgets(nomeTabela, MAX_TAM_NOME, stdin);
-        removerQuebraLinha(nomeTabela);
+        printf("menu \n");
+        scanf("%d", &escolhaMenu);
+        limparBuffer();
 
-        testaNome(arquivoTabela, nomeTabela); // Testa se o nome da tabela é válido
+        switch (escolhaMenu)
+        {
+            case 1: 
+                criarTabela(arquivoTabela);
+                break;
+            case 2: //listar tabelas
+                listarTabelas();
+                break;
+            case 3: //criar nova linha na tabela
+                printf("Informe em qual tabela (nome e extensão) deseja adicionar uma nova linha:  \n");
+                fgets(nomeTabela, MAX_TAM_NOME, stdin);
+                removerQuebraLinha(nomeTabela);
 
-        criarLinha(arquivoTabela, nomeTabela);
-        break;
-    case 4: //listar dados tabela
-        printf("Qual é o nome da tabela que você deseja listar? (Inclua a extensão) \n");
-        fgets(nomeTabela, MAX_TAM_NOME, stdin);
-        removerQuebraLinha(nomeTabela);
+                testaNome(arquivoTabela, nomeTabela); // Testa se o nome da tabela é válido
 
-        testaNome(arquivoTabela, nomeTabela);
+                criarLinha(arquivoTabela, nomeTabela);
+                break;
+            case 4: //listar dados tabela
+                printf("Qual é o nome da tabela que você deseja listar? (Inclua a extensão) \n");
+                fgets(nomeTabela, MAX_TAM_NOME, stdin);
+                removerQuebraLinha(nomeTabela);
 
-        listarDadosTabela(arquivoTabela, nomeTabela);
-        break;
-    case 5: //pesquisar valor tabela
-        break;
-    case 6: //apagar tupla
-        break;
-    case 7: //apagar tabela
-        break;
-    default:
-        break;
+                testaNome(arquivoTabela, nomeTabela);
+
+                listarDadosTabela(arquivoTabela, nomeTabela);
+                break;
+            case 5: //pesquisar valor tabela
+                break;
+            case 6: //apagar tupla
+                break;
+            case 7: //apagar tabela
+                break;
+            default:
+                break;
+        }
     }
+    
+    
 
     return 0;
 }
@@ -121,14 +128,17 @@ void criarTabela(FILE *arquivo) {
     if (scanf("%d", &quantColunas) != 1 || quantColunas < 2) 
     {
         printf("Número de colunas inválido.\n");
+
         return;
     }
     limparBuffer();
 
+    fprintf(arquivo, "%d\n", quantColunas); // Escreve a quantidade de colunas na primeira linha
+
     Coluna coluna[quantColunas];
     char nomeColunaImput[MAX_TAM_NOME];
 
-    // Criação da primeira linha da tabela que contém os nomes
+    // Criação da linha da tabela que contém os nomes
     for (int i = 0; i < quantColunas; i++) 
     {
         if (i == 0) 
@@ -148,7 +158,7 @@ void criarTabela(FILE *arquivo) {
         }
     }
 
-    for (int i = 0; i < quantColunas; i++) // Escreve os tipos de dados na primeira linha
+    for (int i = 0; i < quantColunas; i++) // Escreve os tipos de dados na segunda linha
     {
         if (i == 0)
         {
@@ -251,7 +261,7 @@ void listarTabelas() {
 
 int pegarDados(char string[], Coluna *coluna, int opcao) {
     char *pedacoLinha;
-    int contColunas = 0, i = 0;
+    int i = 0;
 
     pedacoLinha = strtok(string, "||");
     switch (opcao)
@@ -262,10 +272,8 @@ int pegarDados(char string[], Coluna *coluna, int opcao) {
             int tipo = atoi(pedacoLinha);
             pedacoLinha = strtok(NULL, "||");
             coluna[i].tipoColuna = tipo;
-            contColunas++;
             i++;
         }
-        return contColunas;
         break;
     case 2:
         while (pedacoLinha != NULL)
@@ -297,14 +305,13 @@ int pegarDados(char string[], Coluna *coluna, int opcao) {
                 break;
             default:
                 printf("Tipo de dado inválido.\n");
-                return -1;
+                return 1;
                 break;
             }
             pedacoLinha = strtok(NULL, "||");
             i++;
         }
         break;
-    
     default:
         break;
     }
@@ -313,93 +320,47 @@ int pegarDados(char string[], Coluna *coluna, int opcao) {
 
 
 void criarLinha(FILE *arquivo, char nomeTabela[]) {
-    int quantColunas = 2; // Considerando que a tabela contem inicialmente o mínimo de colunas
-    Coluna *linhaNova = malloc(sizeof(Coluna) * quantColunas);
-    char *linhaAtual = malloc(sizeof(char) * MAX_TAM_VALOR);
-
-    // Verifica se a alocação foi bem-sucedida
-    if (linhaNova == NULL)
-    {
-        printf("Falha na alocação de memória.\n");
-        return;
-    }
-    else if (linhaAtual == NULL)
-    {
-        printf("Falha na alocação de memória.\n");
-        free(linhaNova);
-        return;
-    }
-    
-
     arquivo = fopen(nomeTabela, "r+");
     if (arquivo == NULL)
     {
         printf("Erro ao abrir o arquivo");
-        free(linhaAtual);
-        free(linhaNova);
         return;
     }
 
-
-    int tamLinhaAtual = MAX_TAM_VALOR;
-    if (fgets(linhaAtual, tamLinhaAtual, arquivo) != NULL) // Lê a primeira linha do arquivo que informa os tipos do dados
-    {
-        // Se o ultimo caractere lido não for a quebra de linha
-        while (linhaAtual[strlen(linhaAtual) - 1] != '\n')
-        {
-            // Realoca o buffer de linhaAtual
-            tamLinhaAtual += MAX_TAM_NOME;
-            // Cria um novo ponteiro para realocar a memória, para que assim, em casos de erro não se perca o bloco de memória original que contém os dados
-            char *linhaAtualMaior = realloc(linhaAtual, sizeof(char) * tamLinhaAtual);
-            if (linhaAtualMaior == NULL) {
-                printf("Falha na realocação de memória para linhaAtual.\n");
-                free(linhaNova);
-                free(linhaAtual);
-                fclose(arquivo);
-                return;
-            }
-            linhaAtual = linhaAtualMaior;
-            // Lê o restante da linha de onde parou
-            if (fgets(linhaAtual + tamLinhaAtual - MAX_TAM_NOME - 1, MAX_TAM_NOME, arquivo) == NULL) {
-                printf("Erro ao ler a restante da linha do arquivo.\n");
-                free(linhaNova);
-                free(linhaAtual);
-                fclose(arquivo);
-                return;
-            } 
-        }
-        
-    }
-    
-    int quantColunasLidas = pegarDados(linhaAtual, linhaNova, 1); // Separa os tipos de dados e determina a quantidade de colunas da tabela existente
-    if (quantColunasLidas > quantColunas)
-    {
-        Coluna *linhaNovaMaior = realloc(linhaNova, sizeof(Coluna) * quantColunasLidas);
-        if (linhaNovaMaior == NULL) // Verifica se ocorreu algum erro na realocação
-        {
-            printf("Falha na realocação de memória para linhaNova.\n");
-                free(linhaNova);
-                free(linhaAtual);
-                fclose(arquivo);
-                return;
-        }
-        linhaNova = linhaNovaMaior; // O ponteiro original recebe o novo endereço de memória da realocação
-        quantColunas = quantColunasLidas; // Atualiza a quantidade de colunas
-    }
-    
+    int quantColunas = 0;
+    fscanf(arquivo, "%d\n", &quantColunas);
+    Coluna linhaNova[quantColunas];
     int maxTamLinha = (quantColunas + 1) * MAX_TAM_VALOR; // Como cada nome da coluna tem o seu tamanho de até MAX_TAM_VALOR, então a linha contendo todos os nomes terá no máximo = quantintade de colunas * MAX_TAM_NOME + caracteres separadores. Então a quantidade de colunas + 1 comporta toda a linha
-    linhaAtual = realloc(linhaAtual, sizeof(char) * maxTamLinha);
-    fgets(linhaAtual, maxTamLinha, arquivo); // Lê a segunda linha do arquivo que informa nos nomes das colunas
+
+    char linhaAtual[maxTamLinha];
+    
+    fgets(linhaAtual, maxTamLinha, arquivo);// Lê a segunda linha do arquivo que informa os tipos do dados
+    pegarDados(linhaAtual, linhaNova, 1); // Separa os tipos de dados
+
+    fgets(linhaAtual, maxTamLinha, arquivo); // Lê a terceira linha do arquivo que informa nos nomes das colunas
     removerQuebraLinha(linhaAtual);
     pegarDados(linhaAtual, linhaNova, 2);
 
     int contadorLinhasRegistro = 0;
     int quantLinhas = 5;
-    int listaChavesP[quantLinhas];
+    int *listaChavesP = malloc(sizeof(int) * quantLinhas);
 
     // Verifica se já existe alguma linha de registro
     while (fgets(linhaAtual, maxTamLinha, arquivo) != NULL)
     {
+        if (contadorLinhasRegistro > quantLinhas)
+        {
+            quantLinhas += 10;
+            int *listaChaveMaior = realloc(listaChavesP, sizeof(int) * quantLinhas);
+            if (listaChaveMaior == NULL)
+            {
+                printf("Falha na realocação de memória para .\n");
+                free(listaChavesP);
+                fclose(arquivo);
+                return;
+            }
+            listaChavesP = listaChaveMaior;
+        }
         pegarDados(linhaAtual, linhaNova, 3);
         listaChavesP[contadorLinhasRegistro] = linhaNova[0].valorColuna.valorChaveP;
         contadorLinhasRegistro++;
@@ -416,10 +377,10 @@ void criarLinha(FILE *arquivo, char nomeTabela[]) {
             }
             else
             {
-                printf("Digite o valor da coluna %s: ", linhaNova[i].nomeColuna);
+                printf("Digite o valor da coluna %s (máximo 50 caracteres): ", linhaNova[i].nomeColuna);
                 char valorInput[MAX_TAM_VALOR];
                 fgets(valorInput, MAX_TAM_VALOR, stdin);
-                removerQuebraLinha(valorInput);
+                removerQuebraLinha(valorInput); 
 
                 switch (linhaNova[i].tipoColuna) // Verifica o tipo de dado e escreve no arquivo depois da conversão necessária
                 {
@@ -454,10 +415,11 @@ void criarLinha(FILE *arquivo, char nomeTabela[]) {
     {
         unsigned int indexNovaLinha = 1;
         int jaTemEsse = 0;
-        for (int i = indexNovaLinha; i <= contadorLinhasRegistro; i++)
+        // Se já existem outras linhas então irá definir o índice da nova linha verificando se o posível candidado ja pertence a outro registro
+        for (int i = indexNovaLinha; i <= contadorLinhasRegistro + 1; i++)// O loop inicia em 1 e vai até uma unidade a mais do número de linhas de registro. Dessa forma, o novo índice sempre será o menor valor possível
         {
             jaTemEsse = 0;
-            for (int j = 0; j < contadorLinhasRegistro; j++)
+            for (int j = 0; j < contadorLinhasRegistro; j++)// Percorre todo o vetor que contém as chaves primárias da tabela
             {
                 if (listaChavesP[j] == i)
                 {
@@ -482,7 +444,7 @@ void criarLinha(FILE *arquivo, char nomeTabela[]) {
             }
             else
             {
-                printf("Digite o valor da coluna %s: ", linhaNova[i].nomeColuna);
+                printf("Digite o valor da coluna %s (máximo 50 caracteres): ", linhaNova[i].nomeColuna);
                 char valorInput[MAX_TAM_VALOR];
                 fgets(valorInput, MAX_TAM_VALOR, stdin);
                 removerQuebraLinha(valorInput);
@@ -517,8 +479,7 @@ void criarLinha(FILE *arquivo, char nomeTabela[]) {
         fputc('\n', arquivo);
     }
 
-    free(linhaAtual);
-    free(linhaNova);
+    free(listaChavesP);
     fclose(arquivo);
 }
 
