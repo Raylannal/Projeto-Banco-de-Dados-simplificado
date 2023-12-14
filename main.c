@@ -29,6 +29,13 @@ typedef struct {
     Valor valorColuna;
 }Coluna;
 
+typedef struct {
+    char valorIgual[MAX_TAM_VALOR];
+    char valorMaior[MAX_TAM_VALOR];
+    char valorMenor[MAX_TAM_VALOR];
+}Lista;
+
+
 TiposDados verificaTipo(char string[], Coluna *coluna, int i);
 void criarTabela(FILE *arquivo);
 void removerQuebraLinha(char *string);
@@ -38,6 +45,7 @@ int pegarDados(char string[], Coluna *coluna, int opcao);
 void criarLinha(FILE *arquivo, char nomeTabela[]);
 void testaNome(FILE *arquivo, char nomeTabela[]);
 void listarDadosTabela(FILE *arquivo, char nomeTabela[]);
+void pesquisaValor(FILE *arquivo, char nomeTabela[]);
 
 
 int main() 
@@ -79,6 +87,13 @@ int main()
                 listarDadosTabela(arquivoTabela, nomeTabela);
                 break;
             case 5: //pesquisar valor tabela
+                printf("Informe o nome da tabela (nome e extensão) para realizar a pesquisa: \n");
+                fgets(nomeTabela, MAX_TAM_NOME, stdin);
+                removerQuebraLinha(nomeTabela);
+
+                testaNome(arquivoTabela, nomeTabela);
+
+                pesquisaValor(arquivoTabela, nomeTabela);
                 break;
             case 6: //apagar tupla
                 break;
@@ -88,9 +103,6 @@ int main()
                 break;
         }
     }
-    
-    
-
     return 0;
 }
 
@@ -323,7 +335,7 @@ void criarLinha(FILE *arquivo, char nomeTabela[]) {
     arquivo = fopen(nomeTabela, "r+");
     if (arquivo == NULL)
     {
-        printf("Erro ao abrir o arquivo");
+        printf("Erro ao abrir o arquivo. \n");
         return;
     }
 
@@ -344,6 +356,13 @@ void criarLinha(FILE *arquivo, char nomeTabela[]) {
     int contadorLinhasRegistro = 0;
     int quantLinhas = 5;
     int *listaChavesP = malloc(sizeof(int) * quantLinhas);
+    if (listaChavesP == NULL)
+    {
+        printf("Falha na alocação de memória.\n");
+        fclose(arquivo);
+        return;
+    }
+    
 
     // Verifica se já existe alguma linha de registro
     while (fgets(linhaAtual, maxTamLinha, arquivo) != NULL)
@@ -423,11 +442,11 @@ void criarLinha(FILE *arquivo, char nomeTabela[]) {
             {
                 if (listaChavesP[j] == i)
                 {
-                    jaTemEsse = 1;
+                    jaTemEsse = 1; // Se o candidato ao novo índice for igual a algum já existente, então interrompe o loop interno e atribui 1 a JaTemEsse
                     break;
                 }
             }
-            if (jaTemEsse == 0)
+            if (jaTemEsse == 0)// Caso o possível índice seja diferente dos já existentes, então esse é válido para ser o nomo índice
             {
                 indexNovaLinha = i;
                 break;
@@ -490,7 +509,7 @@ void testaNome(FILE *arquivo, char nomeTabela[]){
             printf("Nome de tabela invalido ou inexistente.\n");
             printf("As tabelas existentes são: \n");
             listarTabelas();
-            return;
+            exit(1);
         }
         else {
             fclose(arquivo);
@@ -518,5 +537,222 @@ void listarDadosTabela(FILE *arquivo, char nomeTabela[]) {
     fclose(arquivo);
 }
 
+void pesquisaValor(FILE *arquivo, char nomeTabela[]) {
+    arquivo = fopen(nomeTabela, "r");
+    if (arquivo == NULL)
+    {
+        printf("Erro ao abrir o arquivo.\n");
+        return;
+    }
+
+    int quantColunas = 0;
+    fscanf(arquivo, "%d\n", &quantColunas);
+    Coluna colunaTabela[quantColunas];
+    int maxTamLinha = (quantColunas + 1) * MAX_TAM_VALOR; // Como cada nome da coluna tem o seu tamanho de até MAX_TAM_VALOR, então a linha contendo todos os nomes terá no máximo = quantintade de colunas * MAX_TAM_NOME + caracteres separadores. Então a quantidade de colunas + 1 comporta toda a linha
+
+    char linhaAtual[maxTamLinha];
+    
+    fgets(linhaAtual, maxTamLinha, arquivo);// Lê a segunda linha do arquivo que informa os tipos do dados
+    pegarDados(linhaAtual, colunaTabela, 1); // Separa os tipos de dados
+
+    fgets(linhaAtual, maxTamLinha, arquivo); // Lê a terceira linha do arquivo que informa nos nomes das colunas
+    removerQuebraLinha(linhaAtual);
+    pegarDados(linhaAtual, colunaTabela, 2);
+
+    printf("Digite o número correspondente à coluna em que deseja realizar a pesquisa: \n");
+    printf("As colunas disponíveis são: \n");
+    for (int i = 0; i < quantColunas; i++)
+    {
+        printf("%d - %s\n", i + 1, colunaTabela[i].nomeColuna);
+    }
+
+    int escolha = -1;
+    scanf("%d", &escolha);
+    limparBuffer();
+    escolha -= 1;
+    if (escolha < 0 || escolha >= quantColunas)
+    {
+        printf("Coluna inválida.\n");
+        fclose(arquivo);
+        return;
+    }
+    
+    char valorPesquisado[MAX_TAM_VALOR];
+    printf("Informe o valor a ser pesquisado na coluna %s: ", colunaTabela[escolha].nomeColuna);
+    fgets(valorPesquisado, MAX_TAM_VALOR, stdin);
+    removerQuebraLinha(valorPesquisado);
+    
+    int indexValorIgual = 0, indexValorMaior = 0, indexValorMenor = 0;
+    int maiorQuantLinhas = 5;
+
+    Lista *listaDeComparacao = malloc(sizeof(Lista) * maiorQuantLinhas);
+
+    while (fgets(linhaAtual, maxTamLinha, arquivo) != NULL)
+    {
+        char linhaCopiaAtual[maxTamLinha];
+        strcpy(linhaCopiaAtual, linhaAtual);
+
+        if (indexValorIgual + 1 > maiorQuantLinhas)
+        {
+            maiorQuantLinhas += 10;
+            Lista *listaGrande = realloc(listaDeComparacao, sizeof(Lista) * maiorQuantLinhas);
+            if (listaGrande == NULL)
+            {
+                printf("Falha na realocação de memória.\n");
+                free(listaDeComparacao);
+                fclose(arquivo);
+                return;
+            }
+            listaDeComparacao = listaGrande;
+        }
+        if (indexValorMaior + 1> maiorQuantLinhas)
+        {
+            maiorQuantLinhas += 10;
+            Lista *listaGrande = realloc(listaDeComparacao, sizeof(Lista) * maiorQuantLinhas);
+            if (listaGrande == NULL)
+            {
+                printf("Falha na realocação de memória.\n");
+                free(listaDeComparacao);
+                fclose(arquivo);
+                return;
+            }
+            listaDeComparacao = listaGrande;
+        }
+        if (indexValorMenor + 1 > maiorQuantLinhas)
+        {
+            maiorQuantLinhas += 10;
+            Lista *listaGrande = realloc(listaDeComparacao, sizeof(Lista) * maiorQuantLinhas);
+            if (listaGrande == NULL)
+            {
+                printf("Falha na realocação de memória.\n");
+                free(listaDeComparacao);
+                fclose(arquivo);
+                return;
+            }
+            listaDeComparacao = listaGrande;
+        }
+
+        pegarDados(linhaAtual, colunaTabela, 3);
+
+        int valorIntInput;
+        float valorFloatInput;
+        double valorDoubletInput;
+        switch (colunaTabela[escolha].tipoColuna)
+        {
+            case TIPO_INT:
+                valorIntInput = atoi(valorPesquisado);
+                if (colunaTabela[escolha].valorColuna.valorInt == valorIntInput)
+                {
+                    strcpy(listaDeComparacao[indexValorIgual].valorIgual, linhaCopiaAtual);
+                    indexValorIgual++;
+                }
+                else if (colunaTabela[escolha].valorColuna.valorInt < valorIntInput)
+                {
+                    strcpy(listaDeComparacao[indexValorMenor].valorMenor, linhaCopiaAtual);
+                    indexValorMenor++;
+                }
+                else
+                {
+                    strcpy(listaDeComparacao[indexValorMaior].valorMaior, linhaCopiaAtual);
+                    indexValorMaior++;
+                }
+                break;
+            case TIPO_CHAR:
+                if (colunaTabela[escolha].valorColuna.valorChar == valorPesquisado[0])
+                {
+                    strcpy(listaDeComparacao[indexValorIgual].valorIgual, linhaCopiaAtual);
+                    indexValorIgual++;
+                }
+                else if (colunaTabela[escolha].valorColuna.valorChar < valorPesquisado[0])
+                {
+                    strcpy(listaDeComparacao[indexValorMenor].valorMenor, linhaCopiaAtual);
+                    indexValorMenor++;
+                }
+                else
+                {
+                    strcpy(listaDeComparacao[indexValorMaior].valorMaior, linhaCopiaAtual);
+                    indexValorMaior++;
+                }
+                break;
+            case TIPO_FLOAT:
+                valorFloatInput = atof(valorPesquisado);
+                if (colunaTabela[escolha].valorColuna.valorFloat == valorFloatInput)
+                {
+                    strcpy(listaDeComparacao[indexValorIgual].valorIgual, linhaCopiaAtual);
+                    indexValorIgual++;
+                }
+                else if (colunaTabela[escolha].valorColuna.valorFloat < valorFloatInput)
+                {
+                    strcpy(listaDeComparacao[indexValorMenor].valorMenor, linhaCopiaAtual);
+                    indexValorMenor++;
+                }
+                else
+                {
+                    strcpy(listaDeComparacao[indexValorMaior].valorMaior, linhaCopiaAtual);
+                    indexValorMaior++;
+                }
+                break;
+            case TIPO_DOUBLE:
+                valorDoubletInput = atof(valorPesquisado);
+                if (colunaTabela[escolha].valorColuna.valorDouble == valorDoubletInput)
+                {
+                    strcpy(listaDeComparacao[indexValorIgual].valorIgual, linhaCopiaAtual);
+                    indexValorIgual++;
+                }
+                else if (colunaTabela[escolha].valorColuna.valorDouble < valorDoubletInput)
+                {
+                    strcpy(listaDeComparacao[indexValorMenor].valorMenor, linhaCopiaAtual);
+                    indexValorMenor++;
+                }
+                else
+                {
+                    strcpy(listaDeComparacao[indexValorMaior].valorMaior, linhaCopiaAtual);
+                    indexValorMaior++;
+                }
+                break;
+            case TIPO_STRING:
+                if (strcmp(colunaTabela[escolha].valorColuna.valorString, valorPesquisado) == 0)
+                {
+                    strcpy(listaDeComparacao[indexValorIgual].valorIgual, linhaCopiaAtual);
+                    indexValorIgual++;
+                }
+                else if (colunaTabela[escolha].valorColuna.valorString < valorPesquisado)
+                {
+                    strcpy(listaDeComparacao[indexValorMenor].valorMenor, linhaCopiaAtual);
+                    indexValorMenor++;
+                }
+                else
+                {
+                    strcpy(listaDeComparacao[indexValorMaior].valorMaior, linhaCopiaAtual);
+                    indexValorMaior++;
+                }
+                break;
+            default:
+                break;
+        }
+    }
+
+    printf("Os valores menores que o informado são:\n");
+    for (int i = 0; i <= indexValorMenor; i++)
+    {
+        printf("%s\n", listaDeComparacao[i].valorMenor);
+    }
+    printf("\n");
+    printf("Os valores iguais ao informado são:\n");
+    for (int i = 0; i <= indexValorIgual; i++)
+    {
+        printf("%s\n", listaDeComparacao[i].valorIgual);
+    }
+    printf("\n");
+    printf("Os valores maiores que o informado são:\n");
+    for (int i = 0; i <= indexValorMaior; i++)
+    {
+        printf("%s\n", listaDeComparacao[i].valorMaior);
+    }
+    printf("\n");
+    
+    free(listaDeComparacao);
+    fclose(arquivo);
+}
 
   
