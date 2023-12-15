@@ -47,7 +47,7 @@ void testaNome(FILE *arquivo, char nomeTabela[]);
 void listarDadosTabela(FILE *arquivo, char nomeTabela[]);
 void pesquisaValor(FILE *arquivo, char nomeTabela[]);
 void apagarLinha(FILE *arquivo, char nomeTabela[]);
-
+void apagarTabela(char nomeTabela[]);
 
 int main() 
 {
@@ -106,6 +106,13 @@ int main()
                 apagarLinha(arquivoTabela, nomeTabela);
                 break;
             case 7: //apagar tabela
+                printf("Informe o nome da tabela (nome e extensão) para ser deletada: \n");
+                fgets(nomeTabela, MAX_TAM_NOME, stdin);
+                removerQuebraLinha(nomeTabela);
+
+                testaNome(arquivoTabela, nomeTabela);
+
+                apagarTabela(nomeTabela);
                 break;
             default:
                 break;
@@ -857,10 +864,23 @@ void apagarLinha(FILE *arquivo, char nomeTabela[]) {
     {
         printf("Valor de chave primária inválido, nenhuma linha foi deletada.\n");
     }
+    else
+    {
+        printf("Linha deletada com sucesso.\n");
+    }
+    
     fclose(arquivo);
     fclose(arquivoDestino);
 
     remove(nomeTabela);
     rename("temp.itp", nomeTabela);
+}
+
+void apagarTabela(char nomeTabela[]) {
+    int apagou = remove(nomeTabela);
+    if (apagou == 0)
+    {
+        printf("A tabela foi excluída com sucesso.\n");
+    }
 }
   
