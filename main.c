@@ -583,7 +583,7 @@ void pesquisaValor(FILE *arquivo, char nomeTabela[]) {
     removerQuebraLinha(valorPesquisado);
     
     int indexValorIgual = 0, indexValorMaior = 0, indexValorMenor = 0;
-    int maiorQuantLinhas = 5;
+    int maiorQuantLinhas = 1;
 
     Lista *listaDeComparacao = malloc(sizeof(Lista) * maiorQuantLinhas);
 
@@ -591,6 +591,7 @@ void pesquisaValor(FILE *arquivo, char nomeTabela[]) {
     {
         char linhaCopiaAtual[maxTamLinha];
         strcpy(linhaCopiaAtual, linhaAtual);
+        removerQuebraLinha(linhaCopiaAtual);
 
         if (indexValorIgual + 1 > maiorQuantLinhas)
         {
@@ -715,16 +716,19 @@ void pesquisaValor(FILE *arquivo, char nomeTabela[]) {
                 {
                     strcpy(listaDeComparacao[indexValorIgual].valorIgual, linhaCopiaAtual);
                     indexValorIgual++;
+                    break;
                 }
                 else if (colunaTabela[escolha].valorColuna.valorString < valorPesquisado)
                 {
                     strcpy(listaDeComparacao[indexValorMenor].valorMenor, linhaCopiaAtual);
                     indexValorMenor++;
+                    break;
                 }
                 else
                 {
                     strcpy(listaDeComparacao[indexValorMaior].valorMaior, linhaCopiaAtual);
                     indexValorMaior++;
+                    break;
                 }
                 break;
             default:
@@ -732,24 +736,45 @@ void pesquisaValor(FILE *arquivo, char nomeTabela[]) {
         }
     }
 
+    printf("\n");
     printf("Os valores menores que o informado são:\n");
-    for (int i = 0; i <= indexValorMenor; i++)
+    if (indexValorMenor == 0)
     {
-        printf("%s\n", listaDeComparacao[i].valorMenor);
+        printf("Não há valores menores do que o informado.\n");
+    }
+    else
+    {
+        for (int i = 0; i < indexValorMenor; i++)
+        {
+            printf("%s\n", listaDeComparacao[i].valorMenor);
+        }
     }
     printf("\n");
     printf("Os valores iguais ao informado são:\n");
-    for (int i = 0; i <= indexValorIgual; i++)
+    if (indexValorIgual == 0)
     {
-        printf("%s\n", listaDeComparacao[i].valorIgual);
+        printf("Não há valores iguais ao informado.\n");
+    }
+    else
+    {
+        for (int i = 0; i < indexValorIgual; i++)
+        {
+            printf("%s\n", listaDeComparacao[i].valorIgual);
+        }
     }
     printf("\n");
     printf("Os valores maiores que o informado são:\n");
-    for (int i = 0; i <= indexValorMaior; i++)
+    if (indexValorMaior == 0)
     {
-        printf("%s\n", listaDeComparacao[i].valorMaior);
+        printf("Não há valores maiores do que o informado.\n");
     }
-    printf("\n");
+    else
+    {
+        for (int i = 0; i < indexValorMaior; i++)
+        {
+            printf("%s\n", listaDeComparacao[i].valorMaior);
+        }
+    }
     
     free(listaDeComparacao);
     fclose(arquivo);
