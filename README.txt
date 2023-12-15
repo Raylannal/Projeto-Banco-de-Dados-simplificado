@@ -12,14 +12,20 @@ O projeto foi desenvolvido individualmente e contempla todas as funcionalidades 
 - Apagar linha
 - Apagar tabela
 
+Essas funcionalidades se encontram no arquivo controllers.c.
+O arquivo utils.c contém funções auxiliares para o projeto.
+
 ### Funcionalidades Não Implementadas
 
 Não há funcionalidades solicitadas que não tenham sido implementadas neste projeto.
 
 ### Reflexão sobre o Processo
 
-Durante o desenvolvimento deste projeto, percebi que a implementação atual, embora funcional para este contexto específico, poderia não ser tão eficiente em cenários que envolvam um grande volume de dados. A coleta de dados individualmente, como implementado aqui, pode tornar-se um gargalo significativo quando lidamos com milhares de registros. Em situações desse tipo, a abordagem de inserção de dados um a um pode ser excessivamente lenta e ineficiente.
-Uma melhoria que consideraria para tornar o projeto mais escalável seria implementar métodos que permitam a inserção de dados em massa, talvez utilizando estratégias que possibilitem a inserção de dados em uma única linha ou em lotes. E assim, tornar a aplicação mais eficiente e responsiva.
+Durante o desenvolvimento deste projeto, percebi que a implementação atual, embora funcional para este contexto específico, poderia não ser tão eficiente em cenários que envolvam um 
+grande volume de dados. A coleta de dados individualmente, como implementado aqui, pode tornar-se um gargalo significativo quando lidamos com milhares de registros. Em situações desse 
+tipo, a abordagem de inserção de dados um a um pode ser excessivamente lenta e ineficiente. Uma melhoria que consideraria para tornar o projeto mais escalável seria implementar métodos 
+que permitam a inserção de dados em massa, talvez utilizando estratégias que possibilitem a inserção de dados em uma única linha ou em lotes. E assim, tornar a aplicação mais eficiente 
+e responsiva.
 
 ## Compilação do Projeto
 
