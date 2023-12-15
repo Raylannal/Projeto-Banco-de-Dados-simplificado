@@ -46,6 +46,7 @@ void criarLinha(FILE *arquivo, char nomeTabela[]);
 void testaNome(FILE *arquivo, char nomeTabela[]);
 void listarDadosTabela(FILE *arquivo, char nomeTabela[]);
 void pesquisaValor(FILE *arquivo, char nomeTabela[]);
+void apagarLinha(FILE *arquivo, char nomeTabela[]);
 
 
 int main() 
@@ -95,7 +96,14 @@ int main()
 
                 pesquisaValor(arquivoTabela, nomeTabela);
                 break;
-            case 6: //apagar tupla
+            case 6: //apagar linha
+                printf("Informe o nome da tabela (nome e extensão) para deletar uma linha: \n");
+                fgets(nomeTabela, MAX_TAM_NOME, stdin);
+                removerQuebraLinha(nomeTabela);
+
+                testaNome(arquivoTabela, nomeTabela);
+
+                apagarLinha(arquivoTabela, nomeTabela);
                 break;
             case 7: //apagar tabela
                 break;
@@ -780,4 +788,79 @@ void pesquisaValor(FILE *arquivo, char nomeTabela[]) {
     fclose(arquivo);
 }
 
+void apagarLinha(FILE *arquivo, char nomeTabela[]) {
+    FILE *arquivoDestino; // Cria um novo arquivo temporario para reescrever o arquivo original sem a linha deletada
+
+    arquivo = fopen(nomeTabela, "r");
+    if (arquivo == NULL)
+    {
+        printf("Erro ao abrir o arquivo.\n");
+        return;
+    }
+    arquivoDestino = fopen("temp.itp", "w");
+    if (arquivoDestino == NULL)
+    {
+        fclose(arquivo);
+        printf("Erro ao abrir o arquivo.\n");
+        return;
+    }
+
+    unsigned int escolha = 0;
+    printf("Informe o valor da chave primária a ser excluído: \n");
+    scanf("%u", &escolha);
+    limparBuffer();
+    if (escolha <= 0)
+    {
+        printf("Valor inválido.\n");
+        fclose(arquivo);
+        fclose(arquivoDestino);
+        return;
+    }
+    
+    int quantColunas = 0;
+    fscanf(arquivo, "%d\n", &quantColunas);
+    fprintf(arquivoDestino, "%d\n", quantColunas);
+
+    Coluna colunaTabela[quantColunas];
+    int maxTamLinha = (quantColunas + 1) * MAX_TAM_VALOR; // Como cada nome da coluna tem o seu tamanho de até MAX_TAM_VALOR, então a linha contendo todos os nomes terá no máximo = quantintade de colunas * MAX_TAM_NOME + caracteres separadores. Então a quantidade de colunas + 1 comporta toda a linha
+
+    char linhaAtual[maxTamLinha];
+
+    fgets(linhaAtual, maxTamLinha, arquivo);// Lê a segunda linha do arquivo que informa os tipos do dados
+    removerQuebraLinha(linhaAtual);
+    fprintf(arquivoDestino, "%s\n", linhaAtual);
+    pegarDados(linhaAtual, colunaTabela, 1); // Separa os tipos de dados
+
+    fgets(linhaAtual, maxTamLinha, arquivo); // Lê a terceira linha do arquivo que informa nos nomes das colunas
+    removerQuebraLinha(linhaAtual);
+    fprintf(arquivoDestino, "%s\n", linhaAtual);
+
+    char linhaCopiaAtual[maxTamLinha];
+    int apagouLinha = 0;
+
+    while (fgets(linhaAtual, maxTamLinha, arquivo) != NULL) 
+    {
+        strcpy(linhaCopiaAtual, linhaAtual);
+        removerQuebraLinha(linhaCopiaAtual);
+        pegarDados(linhaAtual, colunaTabela, 3);
+
+        if (colunaTabela[0].valorColuna.valorChaveP == escolha)
+        {
+            apagouLinha = 1;
+        }
+        else
+        {
+            fprintf(arquivoDestino, "%s\n", linhaCopiaAtual);
+        }
+    }
+    if (apagouLinha == 0)
+    {
+        printf("Valor de chave primária inválido, nenhuma linha foi deletada.\n");
+    }
+    fclose(arquivo);
+    fclose(arquivoDestino);
+
+    remove(nomeTabela);
+    rename("temp.itp", nomeTabela);
+}
   
